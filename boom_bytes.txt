@@ -1,0 +1,11 @@
+
+boom.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <.text>:
+   0:	48 c7 c0 bf 3f ef 31 	mov    $0x31ef3fbf,%rax
+   7:	48 c7 c5 80 ef 67 55 	mov    $0x5567ef80,%rbp
+   e:	68 e2 14 40 00       	push   $0x4014e2
+  13:	c3                   	ret
