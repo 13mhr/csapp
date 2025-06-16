@@ -1,0 +1,226 @@
+./sdriver.pl -t trace01.txt -s ./tsh -a "-p"
+#
+# trace01.txt - Properly terminate on EOF.
+#
+./sdriver.pl -t trace02.txt -s ./tsh -a "-p"
+#
+# trace02.txt - Process builtin quit command.
+#
+./sdriver.pl -t trace03.txt -s ./tsh -a "-p"
+#
+# trace03.txt - Run a foreground job.
+#
+tsh> quit
+./sdriver.pl -t trace04.txt -s ./tsh -a "-p"
+#
+# trace04.txt - Run a background job.
+#
+tsh> ./myspin 1 &
+[1] (1379963) ./myspin 1 &
+./sdriver.pl -t trace05.txt -s ./tsh -a "-p"
+#
+# trace05.txt - Process jobs builtin command.
+#
+tsh> ./myspin 2 &
+[1] (1379968) ./myspin 2 &
+tsh> ./myspin 3 &
+[2] (1379970) ./myspin 3 &
+tsh> jobs
+[1] (1379968) Running ./myspin 2 &
+[2] (1379970) Running ./myspin 3 &
+./sdriver.pl -t trace06.txt -s ./tsh -a "-p"
+#
+# trace06.txt - Forward SIGINT to foreground job.
+#
+tsh> ./myspin 4
+Job [1] (1379977) terminated by signal 2
+./sdriver.pl -t trace07.txt -s ./tsh -a "-p"
+#
+# trace07.txt - Forward SIGINT only to foreground job.
+#
+tsh> ./myspin 4 &
+[1] (1379982) ./myspin 4 &
+tsh> ./myspin 5
+Job [2] (1379984) terminated by signal 2
+tsh> jobs
+[1] (1379982) Running ./myspin 4 &
+./sdriver.pl -t trace08.txt -s ./tsh -a "-p"
+#
+# trace08.txt - Forward SIGTSTP only to foreground job.
+#
+tsh> ./myspin 4 &
+[1] (1379990) ./myspin 4 &
+tsh> ./myspin 5
+Job [2] (1379992) stopped by signal 20
+tsh> jobs
+[1] (1379990) Running ./myspin 4 &
+[2] (1379992) Stopped ./myspin 5 
+./sdriver.pl -t trace09.txt -s ./tsh -a "-p"
+#
+# trace09.txt - Process bg builtin command
+#
+tsh> ./myspin 4 &
+[1] (1379999) ./myspin 4 &
+tsh> ./myspin 5
+Job [2] (1380001) stopped by signal 20
+tsh> jobs
+[1] (1379999) Running ./myspin 4 &
+[2] (1380001) Stopped ./myspin 5 
+tsh> bg %2
+[2] (1380001) ./myspin 5 
+tsh> jobs
+[1] (1379999) Running ./myspin 4 &
+[2] (1380001) Running ./myspin 5 
+./sdriver.pl -t trace10.txt -s ./tsh -a "-p"
+#
+# trace10.txt - Process fg builtin command. 
+#
+tsh> ./myspin 4 &
+[1] (1380009) ./myspin 4 &
+tsh> fg %1
+Job [1] (1380009) stopped by signal 20
+tsh> jobs
+[1] (1380009) Stopped ./myspin 4 &
+tsh> fg %1
+tsh> jobs
+./sdriver.pl -t trace11.txt -s ./tsh -a "-p"
+#
+# trace11.txt - Forward SIGINT to every process in foreground process group
+#
+tsh> ./mysplit 4
+Job [1] (1380018) terminated by signal 2
+tsh> /bin/ps a
+    PID TTY      STAT   TIME COMMAND
+   1279 hvc0     Ss+    0:00 /sbin/agetty -o -p -- \u --keep-baud 115200,57600,38400,9600 hvc0 vt220
+   1283 tty1     Ss     0:00 /bin/login -p --
+   1906 tty1     S+     0:00 -bash
+1370729 pts/1    Ss+    0:00 -bash
+1379669 pts/0    Ss     0:00 -bash
+1379948 pts/0    S+     0:00 /bin/bash ./tsh_output.sh
+1380015 pts/0    S+     0:00 /usr/bin/perl ./sdriver.pl -t trace11.txt -s ./tsh -a -p
+1380016 pts/0    S+     0:00 ./tsh -p
+1380022 pts/0    R      0:00 /bin/ps a
+./sdriver.pl -t trace12.txt -s ./tsh -a "-p"
+#
+# trace12.txt - Forward SIGTSTP to every process in foreground process group
+#
+tsh> ./mysplit 4
+Job [1] (1380027) stopped by signal 20
+tsh> jobs
+[1] (1380027) Stopped ./mysplit 4 
+tsh> /bin/ps a
+    PID TTY      STAT   TIME COMMAND
+   1279 hvc0     Ss+    0:00 /sbin/agetty -o -p -- \u --keep-baud 115200,57600,38400,9600 hvc0 vt220
+   1283 tty1     Ss     0:00 /bin/login -p --
+   1906 tty1     S+     0:00 -bash
+1370729 pts/1    Ss+    0:00 -bash
+1379669 pts/0    Ss     0:00 -bash
+1379948 pts/0    S+     0:00 /bin/bash ./tsh_output.sh
+1380024 pts/0    S+     0:00 /usr/bin/perl ./sdriver.pl -t trace12.txt -s ./tsh -a -p
+1380025 pts/0    S+     0:00 ./tsh -p
+1380027 pts/0    T      0:00 ./mysplit 4
+1380028 pts/0    T      0:00 ./mysplit 4
+1380031 pts/0    R      0:00 /bin/ps a
+./sdriver.pl -t trace13.txt -s ./tsh -a "-p"
+#
+# trace13.txt - Restart every stopped process in process group
+#
+tsh> ./mysplit 4
+Job [1] (1380036) stopped by signal 20
+tsh> jobs
+[1] (1380036) Stopped ./mysplit 4 
+tsh> /bin/ps a
+    PID TTY      STAT   TIME COMMAND
+   1279 hvc0     Ss+    0:00 /sbin/agetty -o -p -- \u --keep-baud 115200,57600,38400,9600 hvc0 vt220
+   1283 tty1     Ss     0:00 /bin/login -p --
+   1906 tty1     S+     0:00 -bash
+1370729 pts/1    Ss+    0:00 -bash
+1379669 pts/0    Ss     0:00 -bash
+1379948 pts/0    S+     0:00 /bin/bash ./tsh_output.sh
+1380033 pts/0    S+     0:00 /usr/bin/perl ./sdriver.pl -t trace13.txt -s ./tsh -a -p
+1380034 pts/0    S+     0:00 ./tsh -p
+1380036 pts/0    T      0:00 ./mysplit 4
+1380037 pts/0    T      0:00 ./mysplit 4
+1380040 pts/0    R      0:00 /bin/ps a
+tsh> fg %1
+tsh> /bin/ps a
+    PID TTY      STAT   TIME COMMAND
+   1279 hvc0     Ss+    0:00 /sbin/agetty -o -p -- \u --keep-baud 115200,57600,38400,9600 hvc0 vt220
+   1283 tty1     Ss     0:00 /bin/login -p --
+   1906 tty1     S+     0:00 -bash
+1370729 pts/1    Ss+    0:00 -bash
+1379669 pts/0    Ss     0:00 -bash
+1379948 pts/0    S+     0:00 /bin/bash ./tsh_output.sh
+1380033 pts/0    S+     0:00 /usr/bin/perl ./sdriver.pl -t trace13.txt -s ./tsh -a -p
+1380034 pts/0    S+     0:00 ./tsh -p
+1380043 pts/0    R      0:00 /bin/ps a
+./sdriver.pl -t trace14.txt -s ./tsh -a "-p"
+#
+# trace14.txt - Simple error handling
+#
+tsh> ./bogus
+./bogus: Command not found
+tsh> ./myspin 4 &
+[1] (1380050) ./myspin 4 &
+tsh> fg
+fg command requires PID or %jobid argument
+tsh> bg
+bg command requires PID or %jobid argument
+tsh> fg a
+fg: argument must be a PID or %jobid
+tsh> bg a
+bg: argument must be a PID or %jobid
+tsh> fg 9999999
+(9999999): No such process
+tsh> bg 9999999
+(9999999): No such process
+tsh> fg %2
+%2: No such job
+tsh> fg %1
+Job [1] (1380050) stopped by signal 20
+tsh> bg %2
+%2: No such job
+tsh> bg %1
+[1] (1380050) ./myspin 4 &
+tsh> jobs
+[1] (1380050) Running ./myspin 4 &
+./sdriver.pl -t trace15.txt -s ./tsh -a "-p"
+#
+# trace15.txt - Putting it all together
+#
+tsh> ./bogus
+./bogus: Command not found
+tsh> ./myspin 10
+Job [1] (1380069) terminated by signal 2
+tsh> ./myspin 3 &
+[1] (1380073) ./myspin 3 &
+tsh> ./myspin 4 &
+[2] (1380075) ./myspin 4 &
+tsh> jobs
+[1] (1380073) Running ./myspin 3 &
+[2] (1380075) Running ./myspin 4 &
+tsh> fg %1
+Job [1] (1380073) stopped by signal 20
+tsh> jobs
+[1] (1380073) Stopped ./myspin 3 &
+[2] (1380075) Running ./myspin 4 &
+tsh> bg %3
+%3: No such job
+tsh> bg %1
+[1] (1380073) ./myspin 3 &
+tsh> jobs
+[1] (1380073) Running ./myspin 3 &
+[2] (1380075) Running ./myspin 4 &
+tsh> fg %1
+tsh> quit
+./sdriver.pl -t trace16.txt -s ./tsh -a "-p"
+#
+# trace16.txt - Tests whether the shell can handle SIGTSTP and SIGINT
+#     signals that come from other processes instead of the terminal.
+#
+tsh> ./mystop 2
+Job [1] (1380088) stopped by signal 20
+tsh> jobs
+[1] (1380088) Stopped ./mystop 2
+tsh> ./myint 2
+Job [2] (1380092) terminated by signal 2
